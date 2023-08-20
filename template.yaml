@@ -1,0 +1,63 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  aws-infrastructure
+
+  Sample SAM Template for aws-infrastructure
+
+Resources:
+  DevTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: dev
+      AttributeDefinitions:
+        - 
+          AttributeName: "recordType"
+          AttributeType: "S"
+        - 
+          AttributeName: "recordUniqueInformation"
+          AttributeType: "S"
+      KeySchema:
+        -
+          AttributeName: "recordType"
+          KeyType: "HASH"
+        -
+          AttributeName: "recordUniqueInformation"
+          KeyType: "RANGE"
+      ProvisionedThroughput: 
+        ReadCapacityUnits: "1"
+        WriteCapacityUnits: "1"
+
+  # ProdTable:
+  #   Type: AWS::DynamoDB::Table
+  #   Properties:
+  #     TableName: prod
+  #     AttributeDefinitions:
+  #       - 
+  #         AttributeName: "recordType"
+  #         AttributeType: "S"
+  #       - 
+  #         AttributeName: "recordUniqueInformation"
+  #         AttributeType: "S"
+  #     KeySchema:
+  #       -
+  #         AttributeName: "recordType"
+  #         KeyType: "HASH"
+  #       -
+  #         AttributeName: "recordUniqueInformation"
+  #         KeyType: "RANGE"
+  #     ProvisionedThroughput: 
+  #       ReadCapacityUnits: "2"
+  #       WriteCapacityUnits: "2"
+
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  DevEnvTable:
+    Description: "DynamoDB dev table name"
+    Value: !GetAtt DevTable.Arn
+  # ProdEnvTable:
+  #   Description: "DynamoDB prod table name"
+  #   Value: !GetAtt ProdTable.Arn
