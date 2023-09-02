@@ -6,6 +6,60 @@ Description: >
   Sample SAM Template for aws-infrastructure
 
 Resources:
+  AuthorizerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/handlers
+      Handler: authorizer.authorizerHandler
+      Runtime: nodejs18.x
+      Architectures:
+      - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Function used to authorize users to use API
+      Environment:
+        Variables:
+          TABLE_NAME: prod
+          KEY_PARAMETER_NAME: accountAuthorizationKey
+      Policies:
+      - SSMParameterReadPolicy:
+          ParameterName: accountAuthorizationKey
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: true
+        EntryPoints:
+        - authorizer.ts
+
+  AuthenticateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/handlers
+      Handler: authenticate.authenticateHandler
+      Runtime: nodejs18.x
+      Architectures:
+      - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Function user to log users in
+      Environment:
+        Variables:
+          TABLE_NAME: prod
+          KEY_PARAMETER_NAME: accountAuthorizationKey
+      Policies:
+      - SSMParameterReadPolicy:
+          ParameterName: accountAuthorizationKey
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: true
+        EntryPoints:
+        - authenticate.ts
+
   DevTable:
     Type: AWS::DynamoDB::Table
     Properties:

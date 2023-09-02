@@ -1,0 +1,63 @@
+{
+  "name": "aws-infrastructure",
+  "version": "1.0.0",
+  "description": "This project is used to setup AWS resources used by other AWS applications.",
+  "main": "index.js",
+  "scripts": {
+    "unit": "jest",
+    "lint": "eslint '*.ts' --quiet --fix",
+    "compile": "tsc",
+    "test": "npm run compile && npm run unit",
+    "build": "sam build",
+    "local-api": "sam local start-api",
+    "deploy": "sam deploy"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.188.0",
+    "@aws-sdk/client-ssm": "^3.405.0",
+    "@aws-sdk/lib-dynamodb": "^3.188.0",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.92",
+    "@types/jest": "^29.2.0",
+    "@types/jsonwebtoken": "^9.0.2",
+    "@types/node": "^18.11.4",
+    "@typescript-eslint/eslint-plugin": "^5.10.2",
+    "@typescript-eslint/parser": "^5.10.2",
+    "esbuild": "^0.14.14",
+    "eslint": "^8.8.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "jest": "^29.2.1",
+    "prettier": "^2.5.1",
+    "ts-jest": "^29.0.5",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.8.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jaklyk2103/aws-infrastructure.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "jest": {
+    "testMatch": [
+        "**/__tests__/**/*.[jt]s?(x)",
+        "**/?(*.)+(spec|test).[jt]s?(x)",
+        "**/__tests__/**/*.mjs?(x)",
+        "**/?(*.)+(spec|test).mjs?(x)"
+    ],
+    "moduleFileExtensions": [
+        "mjs",
+        "js"
+    ],
+    "transform": {
+        "^.+\\.ts?$": "ts-jest"
+    },
+    "clearMocks": true,
+    "collectCoverage": true,
+    "coverageDirectory": "coverage",
+    "coverageProvider": "v8"
+  }
+}
