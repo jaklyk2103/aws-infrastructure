@@ -1,9 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: >
-  aws-infrastructure
-
-  Sample SAM Template for aws-infrastructure
+Description: aws-infrastructure
 
 Resources:
   AuthorizerFunction:
@@ -17,13 +14,13 @@ Resources:
       MemorySize: 128
       Timeout: 100
       Description: Function used to authorize users to use API
+      Policies:
+      - SSMParameterReadPolicy:
+          ParameterName: accountAuthorizationKey
       Environment:
         Variables:
           TABLE_NAME: prod
           KEY_PARAMETER_NAME: accountAuthorizationKey
-      Policies:
-      - SSMParameterReadPolicy:
-          ParameterName: accountAuthorizationKey
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -44,13 +41,19 @@ Resources:
       MemorySize: 128
       Timeout: 100
       Description: Function user to log users in
+      Policies:
+      - SSMParameterReadPolicy:
+          ParameterName: accountAuthorizationKey
       Environment:
         Variables:
           TABLE_NAME: prod
           KEY_PARAMETER_NAME: accountAuthorizationKey
-      Policies:
-      - SSMParameterReadPolicy:
-          ParameterName: accountAuthorizationKey
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /login
+            Method: POST
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -82,27 +85,27 @@ Resources:
         ReadCapacityUnits: "1"
         WriteCapacityUnits: "1"
 
-  # ProdTable:
-  #   Type: AWS::DynamoDB::Table
-  #   Properties:
-  #     TableName: prod
-  #     AttributeDefinitions:
-  #       - 
-  #         AttributeName: "recordType"
-  #         AttributeType: "S"
-  #       - 
-  #         AttributeName: "recordUniqueInformation"
-  #         AttributeType: "S"
-  #     KeySchema:
-  #       -
-  #         AttributeName: "recordType"
-  #         KeyType: "HASH"
-  #       -
-  #         AttributeName: "recordUniqueInformation"
-  #         KeyType: "RANGE"
-  #     ProvisionedThroughput: 
-  #       ReadCapacityUnits: "2"
-  #       WriteCapacityUnits: "2"
+  ProdTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: prod
+      AttributeDefinitions:
+        - 
+          AttributeName: "recordType"
+          AttributeType: "S"
+        - 
+          AttributeName: "recordUniqueInformation"
+          AttributeType: "S"
+      KeySchema:
+        -
+          AttributeName: "recordType"
+          KeyType: "HASH"
+        -
+          AttributeName: "recordUniqueInformation"
+          KeyType: "RANGE"
+      ProvisionedThroughput: 
+        ReadCapacityUnits: "1"
+        WriteCapacityUnits: "1"
 
 
 Outputs:
