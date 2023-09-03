@@ -5,14 +5,16 @@ import {
 } from "@aws-sdk/lib-dynamodb";
 import {
   HashedPasswordVerificationPayload,
+  TokenInformation,
   UserCredentials,
   VerifyUserAuthenticityPayload,
 } from "./user.types";
 import { pbkdf2, randomBytes } from "crypto";
 import UserRepository from "./user.repository";
+import { sign } from 'jsonwebtoken';
 
 export default class UserService {
-  constructor(private userRepository: UserRepository) {}
+  constructor(private userRepository: UserRepository, private tokenSecretKey: string) {}
 
   async logInUser(userCredentials: UserCredentials): Promise<string> {
     const { email, password } = userCredentials;
@@ -23,13 +25,12 @@ export default class UserService {
     if (!areUsersCredentialsCorrect)
       throw new Error("Users credentials incorrect.");
 
-    const token = "asd";
-    const tokenExpiry = Date.now() + 1000;
+    const { databaseTokenExpiryTimestampMsUtc, tokenForDatabase, tokenForUser } = this.createToken(email, password);
     await this.userRepository.updateUserAttributes(email, {
-      sessionToken: token,
-      sessionTokenExpiryTimestampMsUtc: String(tokenExpiry),
+      sessionToken: tokenForDatabase,
+      sessionTokenExpiryTimestampMsUtc: databaseTokenExpiryTimestampMsUtc,
     });
-    return token;
+    return tokenForUser;
   }
 
   async registerUser(
@@ -61,6 +62,21 @@ export default class UserService {
     if (!areUsersCredentialsCorrect)
       throw new Error("Users credentials incorrect.");
     return this.userRepository.deleteUserByEmail(userCredentials.email);
+  }
+
+  private createToken(email: string, hashedPassword: string): TokenInformation {
+    const tokenForDatabase = randomBytes(256).toString("hex");
+    const tokenForUser = sign({ 
+      userId: email,
+      hashedPassword,
+      userToken: tokenForDatabase,
+    }, this.tokenSecretKey);
+    const databaseTokenExpiry = String(Date.now() + 7776000000); // 90 days from now
+    return {
+      databaseTokenExpiryTimestampMsUtc: databaseTokenExpiry,
+      tokenForDatabase,
+      tokenForUser
+    }
   }
 
   private async isUserAuthentic(

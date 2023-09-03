@@ -21,3 +21,9 @@ export type HashedPasswordVerificationPayload = {
   salt: string;
   hashedPassword: string;
 };
+
+export type TokenInformation = {
+  tokenForUser: string;
+  tokenForDatabase: string;
+  databaseTokenExpiryTimestampMsUtc: string;
+}

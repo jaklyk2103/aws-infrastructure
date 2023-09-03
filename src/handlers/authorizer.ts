@@ -7,15 +7,17 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
 import { verify } from "jsonwebtoken";
+import UserRepository from "../user/user.repository";
 
 const client = new DynamoDBClient({});
 const documentClient = DynamoDBDocumentClient.from(client);
-const tableName = process.env.TABLE_NAME;
-const keyParameterName = process.env.KEY_PARAMETER_NAME;
+const tableName = String(process.env.TABLE_NAME);
+const keyParameterName = String(process.env.KEY_PARAMETER_NAME);
 const ssmClient = new SSMClient();
 
 type UserAuthorizationPayload = {
   userId: string;
+  hashedPassword: string;
   userToken: string;
 };
 
@@ -57,6 +59,11 @@ const decodeAndVerifyBearerToken = async function (
     throw new Error();
   }
 
+  if (!decodedPayload?.hashedPassword) {
+    console.error("No hashedPassword");
+    throw new Error();
+  }
+
   if (!decodedPayload?.userToken) {
     console.error("No user token");
     throw new Error();
@@ -66,19 +73,10 @@ const decodeAndVerifyBearerToken = async function (
 };
 
 const validateUserToken = async function (
-  payload: UserAuthorizationPayload
+  payload: UserAuthorizationPayload,
+  userRepository: UserRepository
 ): Promise<boolean> {
-  const userItem = (
-    await documentClient.send(
-      new GetCommand({
-        TableName: tableName,
-        Key: {
-          recordType: "USER",
-          recordUniqueInformation: payload.userId,
-        },
-      })
-    )
-  ).Item;
+  const userItem = await userRepository.getUserByEmail(payload.userId);
 
   if (!userItem) {
     console.log("User not found");
@@ -90,7 +88,10 @@ const validateUserToken = async function (
     throw new Error("User not logged in");
   }
 
-  return payload.userToken === userItem.sessionToken;
+  const tokenMatches = payload.userToken === userItem.sessionToken;
+  const tokenIsNotExpired = Date.now() < Number(userItem.sessionTokenExpiryTimestampMsUtc);
+
+  return tokenMatches && !tokenIsNotExpired;
 };
 
 export const authorizerHandler = async (
@@ -102,11 +103,13 @@ export const authorizerHandler = async (
     throw new Error("No authorization token");
   }
 
+  const userRepository = new UserRepository(documentClient, tableName);
+
   try {
     const decodedPayload = await decodeAndVerifyBearerToken(
       event.authorizationToken
     );
-    const isUserAuthorized = validateUserToken(decodedPayload);
+    const isUserAuthorized = validateUserToken(decodedPayload, userRepository);
 
     if (!isUserAuthorized) throw new Error("User not authorized");
 

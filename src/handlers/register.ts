@@ -12,7 +12,7 @@ const tableName = String(process.env.TABLE_NAME);
 export const registerHandler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
-  console.log("Authenticate function invoked");
+  console.log("Register function invoked");
 
   const { email, password } = JSON.parse(event?.body || "");
 
@@ -26,7 +26,7 @@ export const registerHandler = async (
 
   try {
     const userRepository = new UserRepository(documentClient, tableName);
-    const userService = new UserService(userRepository);
+    const userService = new UserService(userRepository, "");
     await userService.registerUser(email, password);
     return {
       statusCode: 200,
