@@ -3,6 +3,11 @@ Transform: AWS::Serverless-2016-10-31
 Description: aws-infrastructure
 
 Resources:
+  ApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+
   AuthorizerFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -40,8 +45,10 @@ Resources:
         - x86_64
       MemorySize: 128
       Timeout: 100
-      Description: Function user to log users in
+      Description: Function used to log users in
       Policies:
+        - DynamoDBCrudPolicy:
+            TableName: prod
         - SSMParameterReadPolicy:
             ParameterName: accountAuthorizationKey
       Environment:
@@ -54,6 +61,42 @@ Resources:
           Properties:
             Path: /authenticate
             Method: POST
+            RestApiId:
+              Ref: ApiGateway
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: true
+        EntryPoints:
+          - authenticate.ts
+
+  RegisterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/handlers
+      Handler: register.registerHandler
+      Runtime: nodejs18.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Function used to register users
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: prod
+      Environment:
+        Variables:
+          TABLE_NAME: prod
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /register
+            Method: POST
+            RestApiId:
+              Ref: ApiGateway
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
