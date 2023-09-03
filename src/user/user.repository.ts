@@ -16,6 +16,19 @@ export default class UserRepository {
     private tableName: string
   ) {}
 
+  async addUser(user: User): Promise<PutCommandOutput> {
+    const putCommand = new PutCommand({
+      TableName: this.tableName,
+      Item: {
+        recordType: "USER",
+        recordUniqueInformation: user.email,
+        ...user,
+      },
+    });
+
+    return this.databaseClient.send(putCommand);
+  }
+
   async getUserByEmail(email: string): Promise<User> {
     const getCommand = new GetCommand({
       Key: {

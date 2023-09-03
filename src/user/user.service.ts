@@ -1,5 +1,6 @@
 import {
   DeleteCommandOutput,
+  PutCommandOutput,
   UpdateCommandOutput,
 } from "@aws-sdk/lib-dynamodb";
 import {
@@ -7,7 +8,7 @@ import {
   UserCredentials,
   VerifyUserAuthenticityPayload,
 } from "./user.types";
-import { pbkdf2 } from "crypto";
+import { pbkdf2, randomBytes } from "crypto";
 import UserRepository from "./user.repository";
 
 export default class UserService {
@@ -29,6 +30,19 @@ export default class UserService {
       sessionTokenExpiryTimestampMsUtc: String(tokenExpiry),
     });
     return token;
+  }
+
+  async registerUser(
+    email: string,
+    password: string
+  ): Promise<PutCommandOutput> {
+    const { hashedPassword, salt } = await this.hashPassword(password);
+
+    return this.userRepository.addUser({
+      email,
+      hashedPassword,
+      salt,
+    });
   }
 
   async logOutUser(email: string): Promise<UpdateCommandOutput> {
@@ -87,7 +101,23 @@ export default class UserService {
     });
   }
 
-  async isHashedPasswordCorrect(
+  private hashPassword(
+    password: string
+  ): Promise<{ hashedPassword: string; salt: string }> {
+    const salt = randomBytes(16).toString("hex");
+
+    return new Promise((resolve, reject) => {
+      pbkdf2(password, salt, 1000, 64, "sha-512", (error, derivedKey) => {
+        if (error) reject(error);
+        resolve({
+          hashedPassword: derivedKey.toString("hex"),
+          salt,
+        });
+      });
+    });
+  }
+
+  private async isHashedPasswordCorrect(
     hashedPasswordVerificationPayload: HashedPasswordVerificationPayload
   ): Promise<boolean> {
     const { hashedPassword, password, salt } =
