@@ -44,11 +44,11 @@ export default class UserRepository {
       throw new Error("User not found");
     }
 
-    if (!user.email || user.hashedPassword || user.salt) {
+    if (!user.email || !user.hashedPassword || !user.salt) {
       throw new Error("User auth data incomplete");
     }
 
-    return user as User;
+    return user;
   }
 
   async deleteUserByEmail(email: string): Promise<DeleteCommandOutput> {
@@ -96,12 +96,12 @@ export default class UserRepository {
     email: string,
     userAttributes: Partial<User>
   ): Promise<UpdateCommandOutput> {
-    const updateExpression = this.createExpressionFromKeyValueObject(
-      "SET ",
-      userAttributes
-    );
-    console.log(`updateExpression: ${updateExpression}`);
+    const keys = Object.keys(userAttributes);
+    const valuesAsObject = this.createAttributesValuesObjectFromArray(Object.values(userAttributes));
 
+    const updateExpressionDynamicPart = keys.map((key, index) => `${keys[index]} = :v${index}`).join(', ');
+    const updateExpression = `SET ${updateExpressionDynamicPart}`;
+    
     const updateCommand = new UpdateCommand({
       Key: {
         recordType: "USER",
@@ -109,19 +109,18 @@ export default class UserRepository {
       },
       TableName: this.tableName,
       UpdateExpression: updateExpression,
+      ExpressionAttributeValues: valuesAsObject,
     });
     return this.databaseClient.send(updateCommand);
   }
 
-  private createExpressionFromKeyValueObject(
-    staticExpressionPart: string,
-    keyValueObject: Record<string, string | number | boolean>
-  ): string {
-    const keys = Object.keys(keyValueObject);
-    const values = Object.values(keyValueObject);
-    return (
-      staticExpressionPart +
-      keys.map((key, index) => `${key} = ${values[index]}`).join(", ")
-    );
+  private createAttributesValuesObjectFromArray(values: string[]): Record<string, string>  {
+    return Object.values(values).reduce((acc, attribute, index) => {
+      acc = {
+        ...acc,
+        [`:v${index}`]: attribute
+      }
+      return acc;
+    }, {});
   }
 }
