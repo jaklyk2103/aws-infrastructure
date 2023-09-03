@@ -52,7 +52,8 @@ const decodeAndVerifyBearerToken = async function (
   token: string
 ): Promise<UserAuthorizationPayload> {
   const secretKey = await getParameterFromSSM();
-  const decodedPayload = verify(token, secretKey, { complete: true })
+  const tokenWithoutBearerPrefix = token.substring(7);
+  const decodedPayload = verify(tokenWithoutBearerPrefix, secretKey, { complete: true })
     .payload as UserAuthorizationPayload;
   if (!decodedPayload?.userId) {
     console.error("No user id");
