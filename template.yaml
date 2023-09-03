@@ -52,7 +52,7 @@ Resources:
         Api:
           Type: Api
           Properties:
-            Path: /login
+            Path: /authenticate
             Method: POST
     Metadata:
       BuildMethod: esbuild

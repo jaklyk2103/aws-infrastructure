@@ -12,8 +12,8 @@ export type User = {
   email: string;
   hashedPassword: string;
   salt: string;
-  sessionToken: string;
-  sessionTokenExpiryTimestampMsUtc: string;
+  sessionToken?: string;
+  sessionTokenExpiryTimestampMsUtc?: string;
 };
 
 export type HashedPasswordVerificationPayload = {

@@ -1,5 +1,13 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { loginUser } from "../user/manageUser";
+import UserService from "../user/user.service";
+
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+import UserRepository from "../user/user.repository";
+
+const client = new DynamoDBClient({});
+const documentClient = DynamoDBDocumentClient.from(client);
+const tableName = String(process.env.TABLE_NAME);
 
 export const authenticateHandler = async (
   event: APIGatewayProxyEvent
@@ -17,7 +25,9 @@ export const authenticateHandler = async (
   }
 
   try {
-    const token = await loginUser({ email, password });
+    const userRepository = new UserRepository(documentClient, tableName);
+    const userService = new UserService(userRepository);
+    const token = await userService.logInUser({ email, password });
     return {
       statusCode: 200,
       body: token,

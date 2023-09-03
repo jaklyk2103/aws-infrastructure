@@ -96,10 +96,16 @@ const validateUserToken = async function (
 export const authorizerHandler = async (
   event: APIGatewayTokenAuthorizerEvent
 ): Promise<AuthResponse> => {
-  console.log("Auth function invoked");
+  console.log("Authorizer function invoked");
+
+  if (!event.authorizationToken) {
+    throw new Error("No authorization token");
+  }
 
   try {
-    const decodedPayload = await decodeAndVerifyBearerToken("");
+    const decodedPayload = await decodeAndVerifyBearerToken(
+      event.authorizationToken
+    );
     const isUserAuthorized = validateUserToken(decodedPayload);
 
     if (!isUserAuthorized) throw new Error("User not authorized");
