@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: aws-infrastructure
 
@@ -10,13 +10,13 @@ Resources:
       Handler: authorizer.authorizerHandler
       Runtime: nodejs18.x
       Architectures:
-      - x86_64
+        - x86_64
       MemorySize: 128
       Timeout: 100
       Description: Function used to authorize users to use API
       Policies:
-      - SSMParameterReadPolicy:
-          ParameterName: accountAuthorizationKey
+        - SSMParameterReadPolicy:
+            ParameterName: accountAuthorizationKey
       Environment:
         Variables:
           TABLE_NAME: prod
@@ -28,7 +28,7 @@ Resources:
         Target: "es2020"
         Sourcemap: true
         EntryPoints:
-        - authorizer.ts
+          - authorizer.ts
 
   AuthenticateFunction:
     Type: AWS::Serverless::Function
@@ -37,13 +37,13 @@ Resources:
       Handler: authenticate.authenticateHandler
       Runtime: nodejs18.x
       Architectures:
-      - x86_64
+        - x86_64
       MemorySize: 128
       Timeout: 100
       Description: Function user to log users in
       Policies:
-      - SSMParameterReadPolicy:
-          ParameterName: accountAuthorizationKey
+        - SSMParameterReadPolicy:
+            ParameterName: accountAuthorizationKey
       Environment:
         Variables:
           TABLE_NAME: prod
@@ -61,27 +61,23 @@ Resources:
         Target: "es2020"
         Sourcemap: true
         EntryPoints:
-        - authenticate.ts
+          - authenticate.ts
 
   DevTable:
     Type: AWS::DynamoDB::Table
     Properties:
       TableName: dev
       AttributeDefinitions:
-        - 
-          AttributeName: "recordType"
+        - AttributeName: "recordType"
           AttributeType: "S"
-        - 
-          AttributeName: "recordUniqueInformation"
+        - AttributeName: "recordUniqueInformation"
           AttributeType: "S"
       KeySchema:
-        -
-          AttributeName: "recordType"
+        - AttributeName: "recordType"
           KeyType: "HASH"
-        -
-          AttributeName: "recordUniqueInformation"
+        - AttributeName: "recordUniqueInformation"
           KeyType: "RANGE"
-      ProvisionedThroughput: 
+      ProvisionedThroughput:
         ReadCapacityUnits: "1"
         WriteCapacityUnits: "1"
 
@@ -90,23 +86,18 @@ Resources:
     Properties:
       TableName: prod
       AttributeDefinitions:
-        - 
-          AttributeName: "recordType"
+        - AttributeName: "recordType"
           AttributeType: "S"
-        - 
-          AttributeName: "recordUniqueInformation"
+        - AttributeName: "recordUniqueInformation"
           AttributeType: "S"
       KeySchema:
-        -
-          AttributeName: "recordType"
+        - AttributeName: "recordType"
           KeyType: "HASH"
-        -
-          AttributeName: "recordUniqueInformation"
+        - AttributeName: "recordUniqueInformation"
           KeyType: "RANGE"
-      ProvisionedThroughput: 
+      ProvisionedThroughput:
         ReadCapacityUnits: "1"
         WriteCapacityUnits: "1"
-
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
