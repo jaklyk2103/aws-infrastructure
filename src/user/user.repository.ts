@@ -19,7 +19,7 @@ export default class UserRepository {
   async getUserByEmail(email: string): Promise<User> {
     const getCommand = new GetCommand({
       Key: {
-        recordId: "USER",
+        recordType: "USER",
         recordUniqueInformation: email,
       },
       TableName: this.tableName,
@@ -41,7 +41,7 @@ export default class UserRepository {
   async deleteUserByEmail(email: string): Promise<DeleteCommandOutput> {
     const deleteCommand = new DeleteCommand({
       Key: {
-        recordId: "USER",
+        recordType: "USER",
         recordUniqueInformation: email,
       },
       TableName: this.tableName,
@@ -56,7 +56,7 @@ export default class UserRepository {
   ): Promise<UpdateCommandOutput> {
     const updateCommand = new UpdateCommand({
       Key: {
-        recordId: "USER",
+        recordType: "USER",
         recordUniqueInformation: email,
       },
       TableName: this.tableName,
@@ -70,7 +70,7 @@ export default class UserRepository {
     const putCommand = new PutCommand({
       TableName: this.tableName,
       Item: {
-        recordId: "USER",
+        recordType: "USER",
         recordUniqueInformation: newUser.email,
         ...newUser,
       },
@@ -91,7 +91,7 @@ export default class UserRepository {
 
     const updateCommand = new UpdateCommand({
       Key: {
-        recordId: "USER",
+        recordType: "USER",
         recordUniqueInformation: email,
       },
       TableName: this.tableName,
