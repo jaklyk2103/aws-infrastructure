@@ -10,7 +10,7 @@
     "test": "npm run compile && npm run unit",
     "build": "sam build",
     "local-api": "sam local start-api",
-    "deploy": "sam deploy --force-upload"
+    "deploy": "sam deploy"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.188.0",
