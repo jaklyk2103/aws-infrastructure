@@ -41,7 +41,13 @@ export const authenticateHandler = async (
     const token = await userService.logInUser({ email, password });
     return {
       statusCode: 200,
-      body: token,
+      body: '',
+      headers: {
+        "Access-Control-Allow-Headers" : "Content-Type, Accept",
+        "Access-Control-Allow-Origin": "http://localhost:3000",
+        "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
+        "Set-Cookie": `authorizationToken=${token};`
+      }
     };
   } catch (error) {
     console.error(`Failed to authenticate. Error: ${JSON.stringify(error)}`);

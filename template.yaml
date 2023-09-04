@@ -7,6 +7,10 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       StageName: Prod
+      Cors:
+        AllowHeaders: "'Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Origin'"
+        AllowMethods: "'POST, GET, OPTIONS'"
+        AllowOrigin: "'http://localhost:3000'"
 
   AuthorizerFunction:
     Type: AWS::Serverless::Function
