@@ -13,15 +13,15 @@ const tableName = String(process.env.TABLE_NAME);
 const keyParameterName = String(process.env.KEY_PARAMETER_NAME);
 const ssmClient = new SSMClient();
 
-export const authenticateHandler = async (
+export const logoutHandler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
-  console.log("Authenticate function invoked");
+  console.log("Log out function invoked");
 
-  const { email, password } = JSON.parse(event?.body || "");
+  const { email } = JSON.parse(event?.body || "");
 
-  if (!email || !password) {
-    console.error("No email or password");
+  if (!email) {
+    console.error("No email");
     return {
       statusCode: 400,
       body: "",
@@ -29,11 +29,9 @@ export const authenticateHandler = async (
   }
 
   try {
-    const tokenSecretKey = await getTokenSecretKey();
-
     const userRepository = new UserRepository(documentClient, tableName);
-    const userService = new UserService(userRepository, tokenSecretKey);
-    const token = await userService.logInUser({ email, password });
+    const userService = new UserService(userRepository, '');
+    await userService.logOutUser(email);
     return {
       statusCode: 200,
       body: '',
@@ -41,30 +39,14 @@ export const authenticateHandler = async (
         "Access-Control-Allow-Headers" : "Content-Type, Accept",
         "Access-Control-Allow-Origin": "http://localhost:3000",
         "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
-        "Set-Cookie": `authorizationToken=${token};`
+        "Set-Cookie": `authorizationToken=; expires=Thu, 01 Jan 1970 00:00:00 GMT`
       }
     };
   } catch (error) {
-    console.error(`Failed to authenticate. Error: ${JSON.stringify(error)}`);
+    console.error(`Failed to log out. Error: ${JSON.stringify(error)}`);
     return {
       statusCode: 400,
       body: "",
     };
   }
 };
-
-
-async function getTokenSecretKey(): Promise<string> {
-  const parameterRepository = new ParameterRepository(ssmClient);
-  try {
-   const tokenSecretKey = await parameterRepository.getParameterValue(keyParameterName, true);
-   if(!tokenSecretKey) {
-     throw new Error("");
-   }
-   return tokenSecretKey;
-  } catch(error) {
-    console.error("Could not get token key");
-    throw error;
-  }
-    
-}

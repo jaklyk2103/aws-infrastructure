@@ -76,6 +76,40 @@ Resources:
         EntryPoints:
           - authenticate.ts
 
+  LogoutFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/handlers
+      Handler: logout.logoutHandler
+      Runtime: nodejs18.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Function used to log users out
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: prod
+      Environment:
+        Variables:
+          TABLE_NAME: prod
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /logout
+            Method: POST
+            RestApiId:
+              Ref: ApiGateway
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: true
+        EntryPoints:
+          - logout.ts
+
   RegisterFunction:
     Type: AWS::Serverless::Function
     Properties:
